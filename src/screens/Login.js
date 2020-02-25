@@ -1,52 +1,47 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image ,StatusBar, ScrollView} from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image ,StatusBar, ScrollView, Alert} from 'react-native';
+import axios from 'axios'
+import { Value } from 'react-native-reanimated';
 
-// const URL_LOGIN = 'http://localhost:4000/api/login/loginuser/'
+const URL_LOGIN = 'http://192.168.1.234:4000/api/login/loginuser/'
 
 export default class Login extends Component {
 
-  // state = {
-  //   login : {
-  //       email : '',
-  //       password : ''
-  //   }
-  // };
+  state = {
+    email : '',
+    password : ''
+  
+  };
 
-  // onChangeStateLogin = (e) => {
-  //   let loginNew = this.state.login
-  //   loginNew[e.target.name] = e.target.value;
-  //   e.preventDefault();
-  //   this.setState(
-  //     {
-  //       login : loginNew
-  //     }  
-  //   );
-  //   // console.log(this.state.login)
-  //   // console.log(e.target.name)
-  // };
 
-  // handleSubmitLogin = e => {
-  //   e.preventDefault();
-  //   this.postLogin();
-  // };
 
-  // postLogin = () => {
-  //     console.log(this.state.login)
-  //   axios.post(URL_LOGIN, this.state.login
-  //   )
-  //     .then((res) => {
-  //       console.log(res.data)
-  //       if(!res.data.token){
-  //           console.log('wrong')
-  //       }else{
-  //           localStorage.setItem('Token', res.data.token)
-  //           localStorage.setItem('id_cashier', res.data.id_user)
-  //           this.props.navigation.navigate('Home')
-  //       }
+  handleSubmitLogin = e => {
+    e.preventDefault();
+    this.postLogin();
+  };
+
+  postLogin = () => {
+    let data  = {
+      email : this.state.email,
+      password : this.state.password
+    }
+    // console.warn(data)
+ 
+    axios.post(URL_LOGIN, data
+    )
+      .then((res) => {
+        console.log(res.data)
+        if(!res.data.token){
+          alert('Username atau Password Salah')
+        }else{
+            // localStorage.setItem('Token', res.data.token)
+            // localStorage.setItem('id_cashier', res.data.id_user)
+            this.props.navigation.navigate('Home')
+        }
         
-  //     })
-  //     .catch(err => console.log(err));
-  //   };
+      })
+      .catch(err => console.log(err));
+    };
 
 render(){
 
@@ -63,7 +58,8 @@ render(){
           placeholderTextColor = "#ffffff"
           selectionColor="#fff"
           keyboardType="email-address"
-          onSubmitEditing={()=> this.password.focus()}
+          onChangeText={(e)=> this.setState({email: e})} 
+          value={this.state.email}
         />
 
         <TextInput style={styles.inputBox}
@@ -71,15 +67,17 @@ render(){
           placeholder="Password"
           secureTextEntry={true}
           placeholderTextColor = "#ffffff"
-          ref={(input) => this.password = input}
+          onChangeText={(e)=> this.setState({password: e})}
+
+          value={this.state.password}
         />
 
-        <TouchableOpacity style={styles.button} onPress={() => this.props.navigation.navigate('Home') }>
+        <TouchableOpacity style={styles.button} onPress={() => this.postLogin() }>
 
         <Text style={styles.buttonText}>Login</Text>
 
         </TouchableOpacity>
-        <Text style={{color:'white' , marginBottom:60 }}> @2020</Text>
+        <Text style={{color:'white' , marginBottom:60 }}> Credit Viwi App 2020 </Text>
 
         </View>
 
