@@ -13,14 +13,26 @@ import {
   Alert,
 } from 'react-native';
 import axios from 'axios';
+import RNPickerSelect from 'react-native-picker-select';
+import ImagePicker from 'react-native-image-picker';
 
 const URL_PRODUCT_LIST = 'http://192.168.1.234:4000/api/product/getall';
 const URL_VIEW_CART = 'http://192.168.1.234:4000/api/cart/cartuser/1';
 const URL_DELETE_PRODUCT = 'http://192.168.1.234:4000/api/product/del';
+const URL_ADD_PRODUCT = 'http://192.168.1.234:4000/api/product/insert';
 
 export default class Login extends Component {
   state = {
     product: [],
+
+    productAddName: '',
+    productAddIdCategory: 0,
+    productAddDescription: '',
+    productAddStock: 0,
+    productAddPrice: 0,
+    productAddImages: '',
+    productAddCreated_at: new Date(),
+    productAddUpdated_at: new Date(),
 
     cart: {
       invoice: 0,
@@ -55,8 +67,12 @@ export default class Login extends Component {
       category: '',
     },
 
+    imagesupload: '',
+
     modalDetail: false,
     modalDelete: false,
+    modalAdd: false,
+    modalEdit: false,
   };
 
   setModalDetail(visible) {
@@ -65,6 +81,14 @@ export default class Login extends Component {
 
   setModalDelete(visible) {
     this.setState({modalDelete: visible});
+  }
+
+  setModalAdd(visible) {
+    this.setState({modalAdd: visible});
+  }
+
+  setModalEdit(visible) {
+    this.setState({modalEdit: visible});
   }
 
   handleDetail = async data => {
@@ -102,6 +126,62 @@ export default class Login extends Component {
   };
 
   //End Delete Product
+
+  //Image Picker
+  imagePickerHandle = () => {
+    const options = {
+      title: ' Select source',
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    ImagePicker.showImagePicker(options, response => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        const source = {uri: response.uri};
+
+        // You can also display the image using data:
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+
+        this.setState({
+          imagesupload: source,
+        });
+      }
+    });
+  };
+
+  //Add Product]
+  addProduct = () => {
+    let data = new FormData();
+    data.append('name', this.state.productAddName);
+    data.append('id_category', this.state.productAddIdCategory);
+    data.append('description', this.state.productAddDescription);
+    data.append('stock', this.state.productAddStock);
+    data.append('price', this.state.productAddPrice);
+    data.append('images', {
+      uri: this.state.imagesupload.uri,
+      type: this.state.imagesupload.type,
+      name: this.state.imagesupload.fileName,
+    });
+    data.append('created_at', new Date());
+    data.append('updated_at', new Date());
+
+    console.warn(data);
+    axios
+      .post(URL_ADD_PRODUCT, data)
+      .then(response => console.warn(response))
+      .catch(err => console.log(err));
+  };
+
+  //END ADD PRODUCT
 
   componentDidMount() {
     this.getProduct();
@@ -169,7 +249,11 @@ export default class Login extends Component {
             </View>
 
             <View>
-              <TouchableOpacity style={styles.editButton}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => {
+                  this.setModalEdit(!this.state.modalEdit);
+                }}>
                 <Text style={styles.editButtonText}>Edit</Text>
               </TouchableOpacity>
             </View>
@@ -253,12 +337,288 @@ export default class Login extends Component {
         </Modal>
         {/* END MODAL DELETE PRODUCT */}
 
+        {/* MODAL ADD PRODUCT */}
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.modalAdd}>
+          <StatusBar
+            hidden={false}
+            backgroundColor="#a06e2c"
+            translucent={false}
+            networkActivityIndicatorVisible={true}
+          />
+
+          <View style={styles.containerAdd}>
+            <Text style={{fontSize: 38, paddingBottom: 40}}>𝔸𝕕𝕕 ℙ𝕣𝕠𝕕𝕦𝕔𝕥</Text>
+            <View style={styles.box}>
+              <View
+                style={{
+                  fontSize: 24,
+                  width: '100%',
+                  textAlign: 'center',
+                  marginBottom: 10,
+                }}>
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Name Product
+                </Text>
+                <TextInput
+                  style={styles.inputBox}
+                  underlineColorAndroid="rgba(0,0,0,0)"
+                  placeholder="Name product"
+                  placeholderTextColor="#a6a6a6"
+                  selectionColor="#000"
+                  onChangeText={e => this.setState({productAddName: e})}
+                  value={this.state.productAddName}
+                />
+
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Description
+                </Text>
+                <TextInput
+                  style={styles.inputBox}
+                  underlineColorAndroid="rgba(0,0,0,0)"
+                  placeholder="Description product"
+                  placeholderTextColor="#a6a6a6"
+                  selectionColor="#fff"
+                  keyboardType="email-address"
+                  onChangeText={e => this.setState({productAddDescription: e})}
+                  value={this.state.productAddDescription}
+                />
+
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Category
+                </Text>
+                <View
+                  style={{
+                    width: '90%',
+                    backgroundColor: 'rgba(255, 255,255,0.2)',
+                    borderRadius: 25,
+                    paddingHorizontal: 16,
+                    alignSelf: 'center',
+                  }}>
+                  <RNPickerSelect
+                    onValueChange={value =>
+                      this.setState({productAddIdCategory: value})
+                    }
+                    items={[
+                      {label: 'Foods', value: 1},
+                      {label: 'Drinks', value: 2},
+                      {label: 'Snack', value: 3},
+                    ]}
+                  />
+                </View>
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Price
+                </Text>
+                <TextInput
+                  style={styles.inputBox}
+                  underlineColorAndroid="rgba(0,0,0,0)"
+                  placeholder="IDR"
+                  placeholderTextColor="#a6a6a6"
+                  selectionColor="#fff"
+                  keyboardType="email-address"
+                  onChangeText={e => this.setState({productAddPrice: e})}
+                  value={this.state.productAddRmail}
+                />
+
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Stock
+                </Text>
+                <TextInput
+                  style={styles.inputBox}
+                  underlineColorAndroid="rgba(0,0,0,0)"
+                  placeholder="Stock"
+                  placeholderTextColor="#a6a6a6"
+                  selectionColor="#fff"
+                  keyboardType="email-address"
+                  onChangeText={e => this.setState({productAddStock: e})}
+                  value={this.state.productAddStock}
+                />
+                <View
+                  style={{
+                    width: '90%',
+                    backgroundColor: 'rgba(255, 255,255,0.2)',
+                    borderRadius: 25,
+                    paddingHorizontal: 16,
+                    alignSelf: 'center',
+                  }}>
+                  <TouchableOpacity
+                    style={styles.buttonUploadImage}
+                    onPress={() => this.imagePickerHandle()}>
+                    <Text style={styles.buttonText}>Upload Image</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <View>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => {
+                  this.setModalAdd(!this.state.modalAdd);
+                }}>
+                <Text style={styles.editButtonText}>Back</Text>
+              </TouchableOpacity>
+            </View>
+            <View>
+              <TouchableOpacity
+                style={styles.AddProductButton}
+                onPress={() => {
+                  this.addProduct();
+                  this.getProduct();
+                  this.setModalAdd(!this.state.modalAdd);
+                }}>
+                <Text style={styles.deleteButtonText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+        {/* END MODAL ADD PRODUCT */}
+
         {/* MODAL EDIT PRODUCT */}
+        <Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.modalEdit}>
+          <StatusBar
+            hidden={false}
+            backgroundColor="#a06e2c"
+            translucent={false}
+            networkActivityIndicatorVisible={true}
+          />
+
+          <View style={styles.containerAdd}>
+            <Text style={{fontSize: 38, paddingBottom: 40}}>𝔼𝕕𝕚𝕥 ℙ𝕣𝕠𝕕𝕦𝕔𝕥</Text>
+            <View style={styles.box}>
+              <View
+                style={{
+                  fontSize: 24,
+                  width: '100%',
+                  textAlign: 'center',
+                  marginBottom: 10,
+                }}>
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Name Product
+                </Text>
+                <TextInput
+                  style={styles.inputBox}
+                  underlineColorAndroid="rgba(0,0,0,0)"
+                  placeholderTextColor="#a6a6a6"
+                  selectionColor="#000"
+                  onChangeText={e => this.setState({productAddName: e})}
+                  value={this.state.detailProduct.name}
+                />
+
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Description
+                </Text>
+                <TextInput
+                  style={styles.inputBox}
+                  underlineColorAndroid="rgba(0,0,0,0)"
+                  // placeholder={this.state.detailProduct.description}
+                  placeholderTextColor="#a6a6a6"
+                  selectionColor="#fff"
+                  keyboardType="email-address"
+                  onChangeText={e => this.setState({productAddDescription: e})}
+                  value={this.state.detailProduct.description}
+                />
+
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Category
+                </Text>
+                <View
+                  style={{
+                    width: '90%',
+                    backgroundColor: 'rgba(255, 255,255,0.2)',
+                    borderRadius: 25,
+                    paddingHorizontal: 16,
+                    alignSelf: 'center',
+                  }}>
+                  <RNPickerSelect
+                    onValueChange={value =>
+                      this.setState({productAddIdCategory: value})
+                    }
+                    value={this.state.detailProduct.id_category}
+                    items={[
+                      {label: 'Foods', value: 1},
+                      {label: 'Drinks', value: 2},
+                      {label: 'Snack', value: 3},
+                    ]}
+                  />
+                </View>
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Price
+                </Text>
+                <TextInput
+                  style={styles.inputBox}
+                  underlineColorAndroid="rgba(0,0,0,0)"
+                  placeholder=""
+                  placeholderTextColor="#a6a6a6"
+                  selectionColor="#fff"
+                  keyboardType="email-address"
+                  onChangeText={e => this.setState({productAddPrice: e})}
+                  value={this.state.detailProduct.price.toString()}
+                />
+
+                <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
+                  Stock
+                </Text>
+                <TextInput
+                  style={styles.inputBox}
+                  underlineColorAndroid="rgba(0,0,0,0)"
+                  placeholderTextColor="#a6a6a6"
+                  selectionColor="#fff"
+                  keyboardType="email-address"
+                  onChangeText={e => this.setState({productAddStock: e})}
+                  value={this.state.detailProduct.stock.toString()}
+                />
+                <View
+                  style={{
+                    width: '90%',
+                    backgroundColor: 'rgba(255, 255,255,0.2)',
+                    borderRadius: 25,
+                    paddingHorizontal: 16,
+                    alignSelf: 'center',
+                  }}>
+                  <TouchableOpacity
+                    style={styles.buttonUploadImage}
+                    onPress={() => this.imagePickerHandle()}>
+                    <Text style={styles.buttonText}>Upload Image</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <View>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => {
+                  this.setModalEdit(!this.state.modalEdit);
+                }}>
+                <Text style={styles.editButtonText}>Back</Text>
+              </TouchableOpacity>
+            </View>
+            <View>
+              <TouchableOpacity
+                style={styles.AddProductButton}
+                onPress={() => {
+                  this.addProduct();
+                  this.getProduct();
+                  this.setModalAdd(!this.state.modalAdd);
+                }}>
+                <Text style={styles.deleteButtonText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+        {/* END MODAL EDIT PRODUCT */}
+
         <View>
           <TouchableOpacity
             style={styles.buttonAddProduct}
             onPress={() => {
-              this.setModalDetail(!this.state.modalDetail);
+              this.setModalAdd(!this.state.modalAdd);
             }}>
             <Text style={styles.buttonText}>𝔸𝕕𝕕</Text>
           </TouchableOpacity>
@@ -272,7 +632,6 @@ export default class Login extends Component {
                 <TouchableOpacity
                   onPress={() => {
                     this.setModalDetail(true);
-
                     this.handleDetail(product);
                   }}>
                   <Image
@@ -346,13 +705,24 @@ const styles = StyleSheet.create({
   },
 
   inputBox: {
-    width: 300,
+    width: '90%',
     backgroundColor: 'rgba(255, 255,255,0.2)',
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#000',
+    marginVertical: 10,
+    right: '-5%',
+  },
+  inputBoxUploadImage: {
+    width: '90%',
+    backgroundColor: '#1c313a',
     borderRadius: 25,
     paddingHorizontal: 16,
     fontSize: 16,
     color: '#ffffff',
     marginVertical: 10,
+    right: '-5%',
   },
 
   button: {
@@ -498,5 +868,35 @@ const styles = StyleSheet.create({
     paddingTop: 300,
     alignItems: 'center',
     backgroundColor: '#f5f5dc',
+  },
+
+  containerAdd: {
+    flex: 1,
+    paddingTop: 100,
+    alignItems: 'center',
+    backgroundColor: '#f5f5dc',
+  },
+
+  //Addproduct button
+  AddProductButton: {
+    width: '40%',
+    backgroundColor: '#1c313a',
+    borderRadius: 25,
+    marginVertical: 10,
+    paddingVertical: 13,
+    position: 'absolute',
+    bottom: -295,
+    left: 10,
+  },
+
+  buttonUploadImage: {
+    alignSelf: 'center',
+    width: '90%',
+    backgroundColor: '#1c313a',
+    borderRadius: 25,
+    marginVertical: 10,
+    paddingVertical: 13,
+    // position: 'absolute',
+    // bottom: 0,
   },
 });

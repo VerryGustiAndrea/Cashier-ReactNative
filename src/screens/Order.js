@@ -16,6 +16,8 @@ import axios from 'axios';
 
 const URL_PRODUCT_LIST = 'http://192.168.1.234:4000/api/product/getall';
 const URL_VIEW_CART = 'http://192.168.1.234:4000/api/cart/cartuser/1';
+const URL_ADD_TO_CART = 'http://192.168.1.234:4000/api/cart/add/1';
+const URL_CHECKOUT_CART = 'http://192.168.1.234:4000/api/cart/checkout/1';
 
 export default class Login extends Component {
   state = {
@@ -62,6 +64,31 @@ export default class Login extends Component {
       this.setState({cart});
     });
   };
+
+  //HANDLE ADD TO CART
+  handleAddToCart = data => {
+    console.log('tes');
+
+    let item = {
+      id_product: data,
+      qty: 1,
+    };
+    axios
+      .post(URL_ADD_TO_CART, item)
+      .then(() => this.checkCart())
+      .catch(err => console.log(err));
+  };
+  //END HANDLE ADD TO CART
+
+  //HANDLE CHECKOUT
+
+  handleCheckoutCart = () => {
+    axios
+      .post(URL_CHECKOUT_CART)
+      .then(() => this.checkCart())
+      .catch(err => console.log(err));
+  };
+  //END HANDLE CHECKOUT
 
   componentDidMount() {
     this.getProduct();
@@ -111,14 +138,16 @@ export default class Login extends Component {
                 onPress={() => {
                   this.setModalVisible(!this.state.modalVisible);
                 }}>
-                <Text style={styles.buttonText}>Continue Shoping</Text>
+                <Text style={styles.buttonText}>Go Back</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.buttonCheckout}>
               <TouchableOpacity
                 onPress={() => {
+                  this.handleCheckoutCart();
                   this.setModalVisible(!this.state.modalVisible);
+                  this.checkCart();
                 }}>
                 <Text style={styles.buttonText}>Checkout</Text>
               </TouchableOpacity>
@@ -132,7 +161,11 @@ export default class Login extends Component {
             let img_url_fix = {uri: img_url};
             return (
               <View style={styles.item} key={product.id}>
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    this.handleAddToCart(product.id);
+                    this.getProduct();
+                  }}>
                   <Image
                     style={{width: '100%', height: '100%', borderRadius: 10}}
                     source={img_url_fix}
