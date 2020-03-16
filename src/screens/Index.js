@@ -16,6 +16,7 @@ import {createAppContainer} from 'react-navigation';
 import {createDrawerNavigator} from 'react-navigation-drawer';
 import {createStackNavigator} from 'react-navigation-stack';
 import Home from './Home';
+import Payment from './Payment';
 import Screen2 from './Order';
 // import Screen3 from './pages/Screen3';
 
@@ -70,20 +71,20 @@ const Screen2_StackNavigator = createStackNavigator({
   },
 });
 
-// const Screen3_StackNavigator = createStackNavigator({
-//   //All the screen from the Screen3 will be indexed here
-//   Third: {
-//     screen: Screen3,
-//     navigationOptions: ({ navigation }) => ({
-//       title: 'Demo Screen 3',
-//       headerLeft: <NavigationDrawerStructure navigationProps={navigation} />,
-//       headerStyle: {
-//         backgroundColor: '#FF9800',
-//       },
-//       headerTintColor: '#fff',
-//     }),
-//   },
-// });
+const Screen3_StackNavigator = createStackNavigator({
+  //All the screen from the Screen3 will be indexed here
+  Third: {
+    screen: Payment,
+    navigationOptions: ({navigation}) => ({
+      title: 'Demo Screen 3',
+      headerLeft: <NavigationDrawerStructure navigationProps={navigation} />,
+      headerStyle: {
+        backgroundColor: '#FF9800',
+      },
+      headerTintColor: '#fff',
+    }),
+  },
+});
 
 const DrawerNavigatorExample = createDrawerNavigator({
   //Drawer Optons and indexing
@@ -101,13 +102,13 @@ const DrawerNavigatorExample = createDrawerNavigator({
       drawerLabel: 'Order',
     },
   },
-  //   Screen3: {
-  //     //Title
-  //     screen: Screen3_StackNavigator,
-  //     navigationOptions: {
-  //       drawerLabel: 'Demo Screen 3',
-  //     },
-  //   },
+  Screen3: {
+    //Title
+    screen: Screen3_StackNavigator,
+    navigationOptions: {
+      drawerLabel: 'Payment',
+    },
+  },
 });
 
 export default createAppContainer(DrawerNavigatorExample);

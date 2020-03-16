@@ -14,10 +14,10 @@ import {
 } from 'react-native';
 import axios from 'axios';
 
-const URL_PRODUCT_LIST = 'http://192.168.1.234:4000/api/product/getall';
-const URL_VIEW_CART = 'http://192.168.1.234:4000/api/cart/cartuser/1';
-const URL_ADD_TO_CART = 'http://192.168.1.234:4000/api/cart/add/1';
-const URL_CHECKOUT_CART = 'http://192.168.1.234:4000/api/cart/checkout/1';
+const URL_PRODUCT_LIST = 'http://10.10.13.143:4000/api/product/getall';
+const URL_VIEW_CART = 'http://10.10.13.143:4000/api/cart/cartuser/1';
+const URL_ADD_TO_CART = 'http://10.10.13.143:4000/api/cart/add/1';
+const URL_CHECKOUT_CART = 'http://10.10.13.143:4000/api/cart/checkout/1';
 
 export default class Login extends Component {
   state = {
@@ -132,64 +132,69 @@ export default class Login extends Component {
                 );
               })}
             </View>
-
-            <View style={styles.buttonContinueShoping}>
-              <TouchableOpacity
-                onPress={() => {
-                  this.setModalVisible(!this.state.modalVisible);
-                }}>
+            <TouchableOpacity
+              style={styles.buttonContinueShoping}
+              onPress={() => {
+                this.setModalVisible(!this.state.modalVisible);
+              }}>
+              <View>
                 <Text style={styles.buttonText}>Go Back</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.buttonCheckout}>
-              <TouchableOpacity
-                onPress={() => {
-                  this.handleCheckoutCart();
-                  this.setModalVisible(!this.state.modalVisible);
-                  this.checkCart();
-                }}>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.buttonCheckout}
+              onPress={() => {
+                this.handleCheckoutCart();
+                this.setModalVisible(!this.state.modalVisible);
+                this.checkCart();
+              }}>
+              <View>
                 <Text style={styles.buttonText}>Checkout</Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            </TouchableOpacity>
           </View>
         </Modal>
+        <ScrollView style={{marginBottom: 180}}>
+          <View style={styles.box}>
+            {this.state.product.map(product => {
+              let img_url = product.images.replace(
+                'localhost',
+                '192.168.1.234',
+              );
+              let img_url_fix = {uri: img_url};
+              return (
+                <View style={styles.item} key={product.id}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      this.handleAddToCart(product.id);
+                      this.getProduct();
+                    }}>
+                    <Image
+                      style={{width: '100%', height: '100%', borderRadius: 10}}
+                      source={img_url_fix}
+                    />
+                  </TouchableOpacity>
 
-        <View style={styles.box}>
-          {this.state.product.map(product => {
-            let img_url = product.images.replace('localhost', '192.168.1.234');
-            let img_url_fix = {uri: img_url};
-            return (
-              <View style={styles.item} key={product.id}>
-                <TouchableOpacity
-                  onPress={() => {
-                    this.handleAddToCart(product.id);
-                    this.getProduct();
-                  }}>
-                  <Image
-                    style={{width: '100%', height: '100%', borderRadius: 10}}
-                    source={img_url_fix}
-                  />
-                </TouchableOpacity>
-
-                <Text style={styles.itemText}> {product.name}</Text>
-                <Text style={styles.itemText}> IDR. {product.price}</Text>
-              </View>
-            );
-          })}
-        </View>
-
+                  <Text style={styles.itemText}> {product.name}</Text>
+                  <Text style={styles.itemText}> IDR. {product.price}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
         {/* <Image  style={{width:400, height: 200 , top: 180 }} source={require('../images/logo.png')}/> */}
-        <View style={styles.button}>
-          <TouchableOpacity
-            onPress={() => {
-              this.setModalVisible(true);
-            }}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            this.setModalVisible(true);
+          }}>
+          <View>
             <Text style={styles.buttonText}>
               Order ({this.state.cart.total_item})
             </Text>
-          </TouchableOpacity>
-        </View>
+          </View>
+        </TouchableOpacity>
+
         <Text style={{color: 'white', position: 'absolute', bottom: 40}}>
           {' '}
           Credit Viwi App 2020{' '}

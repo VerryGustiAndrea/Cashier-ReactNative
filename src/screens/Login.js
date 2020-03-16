@@ -14,7 +14,7 @@ import axios from 'axios';
 import {Value} from 'react-native-reanimated';
 import Index from './Index';
 
-const URL_LOGIN = 'http://192.168.1.234:4000/api/login/loginuser/';
+const URL_LOGIN = 'http://10.10.13.143:4000/api/login/loginuser/';
 
 export default class Login extends Component {
   state = {

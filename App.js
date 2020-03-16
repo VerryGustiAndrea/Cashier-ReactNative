@@ -3,7 +3,7 @@ import MainNavigators from './src/public/navigators/MainNavigators';
 import Login from './src/screens/Login';
 // import {Provider} from 'react-redux'
 // import store from './src/redux'
-console.disableYellowBox = true;
+// console.disableYellowBox = true;
 
 const App = () => {
   return (

@@ -16,20 +16,21 @@ import axios from 'axios';
 import RNPickerSelect from 'react-native-picker-select';
 import ImagePicker from 'react-native-image-picker';
 
-const URL_PRODUCT_LIST = 'http://192.168.1.234:4000/api/product/getall';
-const URL_VIEW_CART = 'http://192.168.1.234:4000/api/cart/cartuser/1';
-const URL_DELETE_PRODUCT = 'http://192.168.1.234:4000/api/product/del';
-const URL_ADD_PRODUCT = 'http://192.168.1.234:4000/api/product/insert';
+const URL_PRODUCT_LIST = 'http://10.10.13.143:4000/api/product/getall';
+const URL_VIEW_CART = 'http://10.10.13.143:4000/api/cart/cartuser/1';
+const URL_DELETE_PRODUCT = 'http://10.10.13.143:4000/api/product/del';
+const URL_ADD_PRODUCT = 'http://10.10.13.143:4000/api/product/insert';
+const URL_EDIT_PRODUCT = 'http://10.10.13.143:4000/api/product/update';
 
 export default class Login extends Component {
   state = {
     product: [],
 
     productAddName: '',
-    productAddIdCategory: 0,
+    productAddIdCategory: '',
     productAddDescription: '',
-    productAddStock: 0,
-    productAddPrice: 0,
+    productAddStock: '',
+    productAddPrice: '',
     productAddImages: '',
     productAddCreated_at: new Date(),
     productAddUpdated_at: new Date(),
@@ -68,6 +69,14 @@ export default class Login extends Component {
     },
 
     imagesupload: '',
+    imagesuploadEdit: '',
+
+    productEditId: 0,
+    productEditName: '',
+    productEditIdCategory: 0,
+    productEditDescription: '',
+    productEditStock: 0,
+    productEditPrice: 0,
 
     modalDetail: false,
     modalDelete: false,
@@ -146,13 +155,44 @@ export default class Login extends Component {
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton);
       } else {
-        const source = {uri: response.uri};
+        // const source = {uri: response.uri};
 
         // You can also display the image using data:
         // const source = { uri: 'data:image/jpeg;base64,' + response.data };
 
         this.setState({
-          imagesupload: source,
+          imagesupload: response,
+        });
+      }
+    });
+  };
+
+  //Handle Image Edit
+  imagePickerHandleEdit = () => {
+    const options = {
+      title: ' Select source',
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    ImagePicker.showImagePicker(options, response => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        // const source = {uri: response.uri};
+
+        // You can also display the image using data:
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+
+        this.setState({
+          imagesuploadEdit: response,
         });
       }
     });
@@ -160,25 +200,50 @@ export default class Login extends Component {
 
   //Add Product]
   addProduct = () => {
-    let data = new FormData();
-    data.append('name', this.state.productAddName);
-    data.append('id_category', this.state.productAddIdCategory);
-    data.append('description', this.state.productAddDescription);
-    data.append('stock', this.state.productAddStock);
-    data.append('price', this.state.productAddPrice);
-    data.append('images', {
+    let datax = new FormData();
+    datax.append('name', this.state.productAddName);
+    datax.append('id_category', this.state.productAddIdCategory);
+    datax.append('description', this.state.productAddDescription);
+    datax.append('stock', this.state.productAddStock);
+    datax.append('price', this.state.productAddPrice);
+    datax.append('images', {
       uri: this.state.imagesupload.uri,
-      type: this.state.imagesupload.type,
+      type: 'image/jpeg',
       name: this.state.imagesupload.fileName,
     });
-    data.append('created_at', new Date());
-    data.append('updated_at', new Date());
 
-    console.warn(data);
+    console.warn('tes' + datax);
     axios
-      .post(URL_ADD_PRODUCT, data)
-      .then(response => console.warn(response))
+      .post(URL_ADD_PRODUCT, datax)
+      .then(
+        response => this.getProduct(),
+        Alert.alert('Produk berhasil ditambahkan'),
+      )
       .catch(err => console.log(err));
+  };
+
+  //Edit Product
+  editProduct = () => {
+    let dataz = new FormData();
+    dataz.append('name', this.state.productEditName);
+    dataz.append('id_category', this.state.productEditIdCategory);
+    dataz.append('description', this.state.productEditDescription);
+    dataz.append('stock', this.state.productEditStock);
+    dataz.append('price', this.state.productEditPrice);
+    dataz.append('images', {
+      uri: this.state.imagesuploadEdit.uri,
+      type: 'image/jpeg',
+      name: this.state.imagesuploadEdit.fileName,
+    });
+
+    console.warn('tes' + dataz);
+    // axios
+    //   .post(URL_EDIT_PRODUCT, dataz)
+    //   .then(
+    //     response => this.getProduct(),
+    //     Alert.alert('Produk berhasil diedit'),
+    //   )
+    //   .catch(err => console.log(err));
   };
 
   //END ADD PRODUCT
@@ -402,9 +467,9 @@ export default class Login extends Component {
                       this.setState({productAddIdCategory: value})
                     }
                     items={[
-                      {label: 'Foods', value: 1},
-                      {label: 'Drinks', value: 2},
-                      {label: 'Snack', value: 3},
+                      {label: 'Foods', value: '1'},
+                      {label: 'Drinks', value: '2'},
+                      {label: 'Snack', value: '3'},
                     ]}
                   />
                 </View>
@@ -417,9 +482,8 @@ export default class Login extends Component {
                   placeholder="IDR"
                   placeholderTextColor="#a6a6a6"
                   selectionColor="#fff"
-                  keyboardType="email-address"
                   onChangeText={e => this.setState({productAddPrice: e})}
-                  value={this.state.productAddRmail}
+                  value={this.state.productAddPrice}
                 />
 
                 <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
@@ -431,7 +495,6 @@ export default class Login extends Component {
                   placeholder="Stock"
                   placeholderTextColor="#a6a6a6"
                   selectionColor="#fff"
-                  keyboardType="email-address"
                   onChangeText={e => this.setState({productAddStock: e})}
                   value={this.state.productAddStock}
                 />
@@ -466,7 +529,6 @@ export default class Login extends Component {
                 style={styles.AddProductButton}
                 onPress={() => {
                   this.addProduct();
-                  this.getProduct();
                   this.setModalAdd(!this.state.modalAdd);
                 }}>
                 <Text style={styles.deleteButtonText}>Add</Text>
@@ -506,8 +568,11 @@ export default class Login extends Component {
                   underlineColorAndroid="rgba(0,0,0,0)"
                   placeholderTextColor="#a6a6a6"
                   selectionColor="#000"
-                  onChangeText={e => this.setState({productAddName: e})}
-                  value={this.state.detailProduct.name}
+                  onChangeText={e => this.setState({productEditName: e})}
+                  // placeholder={
+                  //   (this.state.productEditName = this.state.detailProduct.name)
+                  // }
+                  value={this.state.productEditName}
                 />
 
                 <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
@@ -520,8 +585,8 @@ export default class Login extends Component {
                   placeholderTextColor="#a6a6a6"
                   selectionColor="#fff"
                   keyboardType="email-address"
-                  onChangeText={e => this.setState({productAddDescription: e})}
-                  value={this.state.detailProduct.description}
+                  onChangeText={e => this.setState({productEditDescription: e})}
+                  placeholder={this.state.productEditDescription}
                 />
 
                 <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
@@ -537,9 +602,9 @@ export default class Login extends Component {
                   }}>
                   <RNPickerSelect
                     onValueChange={value =>
-                      this.setState({productAddIdCategory: value})
+                      this.setState({productEditIdCategory: value})
                     }
-                    value={this.state.detailProduct.id_category}
+                    value={this.state.productEditIdCategory}
                     items={[
                       {label: 'Foods', value: 1},
                       {label: 'Drinks', value: 2},
@@ -557,8 +622,8 @@ export default class Login extends Component {
                   placeholderTextColor="#a6a6a6"
                   selectionColor="#fff"
                   keyboardType="email-address"
-                  onChangeText={e => this.setState({productAddPrice: e})}
-                  value={this.state.detailProduct.price.toString()}
+                  onChangeText={e => this.setState({productEditPrice: e})}
+                  placeholder={this.state.productEditPrice.toString()}
                 />
 
                 <Text style={{fontSize: 16, fontWeight: '700', left: '5%'}}>
@@ -570,8 +635,8 @@ export default class Login extends Component {
                   placeholderTextColor="#a6a6a6"
                   selectionColor="#fff"
                   keyboardType="email-address"
-                  onChangeText={e => this.setState({productAddStock: e})}
-                  value={this.state.detailProduct.stock.toString()}
+                  onChangeText={e => this.setState({productEditStock: e})}
+                  value={this.state.productEditStock.toString()}
                 />
                 <View
                   style={{
@@ -583,7 +648,7 @@ export default class Login extends Component {
                   }}>
                   <TouchableOpacity
                     style={styles.buttonUploadImage}
-                    onPress={() => this.imagePickerHandle()}>
+                    onPress={() => this.imagePickerHandleEdit()}>
                     <Text style={styles.buttonText}>Upload Image</Text>
                   </TouchableOpacity>
                 </View>
@@ -603,11 +668,12 @@ export default class Login extends Component {
               <TouchableOpacity
                 style={styles.AddProductButton}
                 onPress={() => {
-                  this.addProduct();
+                  this.editProduct();
                   this.getProduct();
+                  this.setModalEdit(!this.state.modalEdit);
                   this.setModalAdd(!this.state.modalAdd);
                 }}>
-                <Text style={styles.deleteButtonText}>Add</Text>
+                <Text style={styles.deleteButtonText}>Update</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -623,27 +689,32 @@ export default class Login extends Component {
             <Text style={styles.buttonText}>𝔸𝕕𝕕</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.box}>
-          {this.state.product.map(product => {
-            let img_url = product.images.replace('localhost', '192.168.1.234');
-            let img_url_fix = {uri: img_url};
-            return (
-              <View style={styles.item} key={product.id}>
-                <TouchableOpacity
-                  onPress={() => {
-                    this.setModalDetail(true);
-                    this.handleDetail(product);
-                  }}>
-                  <Image
-                    style={{width: '100%', height: 170, borderRadius: 10}}
-                    source={img_url_fix}
-                  />
-                </TouchableOpacity>
-                <Text style={styles.itemText}> {product.name}</Text>
-              </View>
-            );
-          })}
-        </View>
+        <ScrollView>
+          <View style={styles.box}>
+            {this.state.product.map(product => {
+              let img_url = product.images.replace(
+                'localhost',
+                '192.168.1.234',
+              );
+              let img_url_fix = {uri: img_url};
+              return (
+                <View style={styles.item} key={product.id}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      this.setModalDetail(true);
+                      this.handleDetail(product);
+                    }}>
+                    <Image
+                      style={{width: '100%', height: 170, borderRadius: 10}}
+                      source={img_url_fix}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.itemText}> {product.name}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
 
         {/* <Image  style={{width:400, height: 200 , top: 180 }} source={require('../images/logo.png')}/> */}
       </View>
